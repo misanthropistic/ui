@@ -1,117 +1,37 @@
--- Monolith UI Library - Modified for /alternate directory
--- Base library loaded from online source, then customized locally
+-- Variables 
+    local uis = game:GetService("UserInputService") 
+    local players = game:GetService("Players") 
+    local ws = game:GetService("Workspace")
+    local rs = game:GetService("ReplicatedStorage")
+    local http_service = game:GetService("HttpService")
+    local gui_service = game:GetService("GuiService")
+    local lighting = game:GetService("Lighting")
+    local run = game:GetService("RunService")
+    local stats = game:GetService("Stats")
+    local coregui = game:GetService("CoreGui")
+    local debris = game:GetService("Debris")
+    local tween_service = game:GetService("TweenService")
+    local sound_service = game:GetService("SoundService")
 
-local library, notifications = loadstring(game:HttpGet("https://raw.githubusercontent.com/i77lhm/Libraries/refs/heads/main/Monolith/Library.lua"))()
+    local vec2 = Vector2.new
+    local vec3 = Vector3.new
+    local dim2 = UDim2.new
+    local dim = UDim.new 
+    local rect = Rect.new
+    local cfr = CFrame.new
+    local empty_cfr = cfr()
+    local point_object_space = empty_cfr.PointToObjectSpace
+    local angle = CFrame.Angles
+    local dim_offset = UDim2.fromOffset
 
--- Override directory to use /alternate
-library.directory = "alternate"
-
--- Recreate folders for /alternate
-local folders = {
-    "/fonts",
-    "/configs",
-}
-for _, path in next, folders do 
-    if not isfolder(library.directory .. path) then
-        makefolder(library.directory .. path)
-    end
-end
-
--- Store original window function
-local originalWindow = library.window
-
--- Custom window function with modifications
-function library:window(properties)
-    -- Call original window function first
-    local window = originalWindow(library, properties)
-    
-    -- Increase window size (wider and taller)
-    if library.items and library.items.window then
-        library.items.window.Size = UDim2.new(0, 900, 0, 550)
-    end
-    
-    -- Hide the logo and title
-    if library.items and library.items.logo then
-        library.items.logo.Visible = false
-    end
-    if library.items and library.items.ui_title then
-        library.items.ui_title.Visible = false
-    end
-    if library.items and library.items.top_frame then
-        library.items.top_frame.Size = UDim2.new(1, 0, 0, 5)
-    end
-    
-    -- Adjust page holder position and size (removed title space)
-    if library.items and library.items.page_holder then
-        library.items.page_holder.Position = UDim2.new(0, 63, 0, 10)
-        library.items.page_holder.Size = UDim2.new(1, -63, 1, -10)
-    end
-    
-    return window
-end
-
--- Store original Tab function
-local originalTab = library.Tab
-
--- Custom Tab function with tooltip support
-function library:Tab(properties)
-    local tab = originalTab(library, properties)
-    
-    -- Add tooltip functionality
-    local tooltipText = properties.tooltip or properties.Tooltip or properties.name or "Tab"
-    
-    if tab.items and tab.items.tab_button then
-        local button = tab.items.tab_button
-        local tooltip
-        
-        -- Create tooltip on hover
-        button.MouseEnter:Connect(function()
-            if not tooltip then
-                tooltip = Instance.new("TextLabel")
-                tooltip.Name = "Tooltip"
-                tooltip.Text = tooltipText
-                tooltip.TextSize = 11
-                tooltip.TextColor3 = Color3.fromRGB(255, 255, 255)
-                tooltip.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-                tooltip.BorderColor3 = Color3.fromRGB(100, 100, 100)
-                tooltip.BorderSizePixel = 1
-                tooltip.Parent = library.items
-                tooltip.Size = UDim2.new(0, 120, 0, 25)
-                tooltip.Position = UDim2.new(0, button.AbsolutePosition.X, 0, button.AbsolutePosition.Y - 40)
-                tooltip.ZIndex = 100
-                
-                local padding = Instance.new("UIPadding")
-                padding.PaddingLeft = UDim.new(0, 5)
-                padding.PaddingRight = UDim.new(0, 5)
-                padding.Parent = tooltip
-            end
-        end)
-        
-        button.MouseLeave:Connect(function()
-            if tooltip then
-                tooltip:Destroy()
-                tooltip = nil
-            end
-        end)
-    end
-    
-    return tab
-end
-
--- Icon configuration table for easy reference
-library.TAB_ICONS = {
-    Rage = "rbxassetid://18248771514",
-    AntiAim = "rbxassetid://15453313321",
-    Aimbot = "rbxassetid://15453335745",
-    Visuals = "rbxassetid://15453344494",
-    Settings = "rbxassetid://15453349637",
-    Weapons = "rbxassetid://15453354931",
-    PlayerList = "rbxassetid://15453359751",
-    Configs = "rbxassetid://15453364412",
-    Lua = "rbxassetid://18240049800",
-}
-
-return library, notifications
+    local color = Color3.new
+    local rgb = Color3.fromRGB
+    local hex = Color3.fromHex
+    local hsv = Color3.fromHSV
+    local rgbseq = ColorSequence.new
+    local rgbkey = ColorSequenceKeypoint.new
+    local numseq = NumberSequence.new
+    local numkey = NumberSequenceKeypoint.new
 
     local camera = ws.CurrentCamera
     local lp = players.LocalPlayer 
@@ -542,7 +462,7 @@ return library, notifications
             local cfg = { 
                 -- Properties
                 name = properties.name or properties.Name or "nebula";
-                size = properties.size or properties.Size or dim2(0, 650, 0, 400);
+                size = properties.size or properties.Size or dim2(0, 900, 0, 550);
                 logo = properties.logo or properties.Logo or "rbxassetid://128155293790451";
 
                 selected_tab;
@@ -614,12 +534,17 @@ return library, notifications
                     BackgroundColor3 = rgb(255, 255, 255)
                 });
                 
+                -- Hide logo and title
+                items[ "logo" ].Visible = false
+                items[ "ui_title" ].Visible = false
+                items[ "top_frame" ].Size = dim2(1, 0, 0, 5)
+                
                 items[ "inline" ] = library:create( "Frame" , {
                     Parent = items[ "window" ];
                     Name = "\0";
-                    Position = dim2(0, 0, 0, 44);
+                    Position = dim2(0, 0, 0, 5);
                     BorderColor3 = rgb(0, 0, 0);
-                    Size = dim2(0, 63, 1, -44);
+                    Size = dim2(0, 63, 1, -5);
                     BorderSizePixel = 0;
                     BackgroundColor3 = rgb(0, 0, 0)
                 });
@@ -636,21 +561,21 @@ return library, notifications
                 
                 library:create( "UIPadding" , {
                     Parent = items[ "tab_button_holder" ];
-                    PaddingTop = dim(0, 37)
+                    PaddingTop = dim(0, 50)
                 });
                 
                 library:create( "UIListLayout" , {
                     Parent = items[ "tab_button_holder" ];
-                    Padding = dim(0, 24);
+                    Padding = dim(0, 35);
                     SortOrder = Enum.SortOrder.LayoutOrder
                 });
                 
                 items[ "page_holder" ] = library:create( "Frame" , {
                     Parent = items[ "window" ];
                     Name = "\0";
-                    Position = dim2(0, 63, 0, 45);
+                    Position = dim2(0, 63, 0, 10);
                     BorderColor3 = rgb(0, 0, 0);
-                    Size = dim2(1, -63, 1, -45);
+                    Size = dim2(1, -63, 1, -10);
                     BorderSizePixel = 0;
                     BackgroundColor3 = rgb(12, 12, 12)
                 });                
@@ -806,6 +731,41 @@ return library, notifications
 
             items[ "tab_button" ].MouseButton1Down:Connect(function()
                 cfg.open_tab()
+            end)
+            
+            -- Add tooltip support
+            local tooltipText = properties.tooltip or properties.Tooltip or cfg.name or "Tab"
+            local tooltip
+            
+            items[ "tab_button" ].MouseEnter:Connect(function()
+                if not tooltip then
+                    tooltip = library:create( "TextLabel" , {
+                        Name = "Tooltip";
+                        Text = tooltipText;
+                        TextSize = 11;
+                        TextColor3 = rgb(255, 255, 255);
+                        BackgroundColor3 = rgb(30, 30, 30);
+                        BorderColor3 = rgb(100, 100, 100);
+                        BorderSizePixel = 1;
+                        Parent = library.items;
+                        Size = dim2(0, 120, 0, 25);
+                        Position = dim2(0, items[ "tab_button" ].AbsolutePosition.X, 0, items[ "tab_button" ].AbsolutePosition.Y - 40);
+                        ZIndex = 100;
+                    });
+                    
+                    library:create( "UIPadding" , {
+                        PaddingLeft = dim(0, 5);
+                        PaddingRight = dim(0, 5);
+                        Parent = tooltip;
+                    });
+                end
+            end)
+            
+            items[ "tab_button" ].MouseLeave:Connect(function()
+                if tooltip then
+                    tooltip:Destroy()
+                    tooltip = nil
+                end
             end)
 
             if not self.selected_tab then 
@@ -2860,5 +2820,18 @@ return library, notifications
 		end
 	-- 
 -- 
+
+-- Icon configuration table for easy reference
+library.TAB_ICONS = {
+	Rage = "rbxassetid://18248771514",
+	AntiAim = "rbxassetid://15453313321",
+	Aimbot = "rbxassetid://15453335745",
+	Visuals = "rbxassetid://15453344494",
+	Settings = "rbxassetid://15453349637",
+	Weapons = "rbxassetid://15453354931",
+	PlayerList = "rbxassetid://15453359751",
+	Configs = "rbxassetid://15453364412",
+	Lua = "rbxassetid://18240049800",
+}
 
 return library, notifications
